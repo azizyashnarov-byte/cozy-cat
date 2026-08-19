@@ -15,36 +15,33 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: #fffaf0;
   transition: background-color 0.8s ease;
-  overflow: hidden; /* Запрещаем скролл, чтобы сердечки не раздвигали экран */
+  overflow: hidden;
   position: relative;
 }
 
-/* Контейнер для анимации сердечек */
 #hearts-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  pointer-events: none; /* Сердечки не мешают кликам */
-  z-index: 0;
+  pointer-events: none;
+  z-index: 999;
 }
 
-.heart {
+.heart-particle {
   position: absolute;
-  font-size: 20px;
   user-select: none;
-  animation: floatUp 2s ease-out forwards;
-  opacity: 0.8;
+  animation: floatUp 1.8s ease-out forwards;
 }
 
 @keyframes floatUp {
   0% {
-    transform: translateY(0) scale(0.8) rotate(0deg);
-    opacity: 0.9;
+    transform: translateY(0) scale(0.6) rotate(0deg);
+    opacity: 1;
   }
   100% {
-    transform: translateY(-120px) scale(1.4) rotate(20deg);
+    transform: translateY(-100px) scale(1.3) rotate(25deg);
     opacity: 0;
   }
 }
@@ -56,7 +53,7 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  z-index: 1; /* Карточка всегда поверх сердечек */
+  z-index: 1;
 }
 
 #cat-container {
