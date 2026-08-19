@@ -6,11 +6,6 @@ const sendBtn = document.getElementById("send-btn");
 const status = document.getElementById("status");
 const preview = document.getElementById("preview");
 
-// Создаём контейнер для сердечек прямо в скрипте
-const heartsContainer = document.createElement("div");
-heartsContainer.id = "hearts-container";
-document.body.appendChild(heartsContainer);
-
 let isTaskActive = false;
 let currentFile = null;
 
@@ -39,29 +34,33 @@ const photoTasks = [
   "🤳 Сделай самое милое селфи!"
 ];
 
-// Функция генерации множества сердечек при нажатии
-function createHearts() {
-  const heartIcons = ["❤️", "💖", "💕", "💗", "💓", "🌸"];
-  const count = 15; // Количество сердечек за один клик
+// Автоматически создаем слой для сердечек
+let heartsContainer = document.getElementById("hearts-container");
+if (!heartsContainer) {
+  heartsContainer = document.createElement("div");
+  heartsContainer.id = "hearts-container";
+  document.body.appendChild(heartsContainer);
+}
 
-  for (let i = 0; i < count; i++) {
-    const heart = document.createElement("div");
-    heart.className = "heart";
-    heart.textContent = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+// Функция летящих сердечек
+function spawnHearts() {
+  const icons = ["❤️", "💖", "💕", "💗", "💓", "✨", "🌸"];
+  
+  for (let i = 0; i < 15; i++) {
+    const heart = document.createElement("span");
+    heart.className = "heart-particle";
+    heart.textContent = icons[Math.floor(Math.random() * icons.length)];
     
-    // Рандомная позиция по всей ширине и высоте экрана
+    // Позиция по всему экрану
     heart.style.left = Math.random() * 90 + 5 + "vw";
-    heart.style.top = Math.random() * 60 + 20 + "vh";
+    heart.style.top = Math.random() * 70 + 15 + "vh";
+    heart.style.fontSize = Math.random() * 15 + 18 + "px";
     
-    // Рандомный размер
-    heart.style.fontSize = Math.random() * 15 + 15 + "px";
-
     heartsContainer.appendChild(heart);
 
-    // Удаляем сердечко после завершения анимации
     setTimeout(() => {
       heart.remove();
-    }, 2000);
+    }, 1800);
   }
 }
 
@@ -71,8 +70,8 @@ catContainer.addEventListener("click", () => {
     return;
   }
 
-  // Запускаем салют из сердечек!
-  createHearts();
+  // Запуск сердечек при каждом клике
+  spawnHearts();
 
   const isTask = Math.random() < 0.05;
 
