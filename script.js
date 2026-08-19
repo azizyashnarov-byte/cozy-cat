@@ -5,10 +5,65 @@ const photoInput = document.getElementById("photo-input");
 const sendBtn = document.getElementById("send-btn");
 const status = document.getElementById("status");
 const preview = document.getElementById("preview");
+const musicBtn = document.getElementById("music-btn");
 
 let isTaskActive = false;
 let currentFile = null;
+let lastBgIndex = -1;
+let lastFilterIndex = -1;
 
+// --- АУДИО МУРЛЫКАНЬЯ (Web Audio API) ---
+let audioCtx = null;
+let purrOscillator = null;
+let isPurring = false;
+
+function togglePurr() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  if (isPurring) {
+    if (purrOscillator) {
+      purrOscillator.stop();
+      purrOscillator.disconnect();
+    }
+    isPurring = false;
+    musicBtn.classList.remove("playing");
+    musicBtn.textContent = "🎵";
+  } else {
+    // Создаем мягкий низкочастотный звук мурлыканья
+    purrOscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    purrOscillator.type = "sine";
+    purrOscillator.frequency.setValueAtTime(28, audioCtx.currentTime); // Низкая частота кошачьего мурлыканья
+    
+    // Модуляция для создания ритма дыхания
+    const mod = audioCtx.createOscillator();
+    mod.frequency.setValueAtTime(2.5, audioCtx.currentTime);
+    const modGain = audioCtx.createGain();
+    modGain.gain.setValueAtTime(10, audioCtx.currentTime);
+    
+    mod.connect(modGain);
+    modGain.connect(purrOscillator.frequency);
+    
+    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    
+    purrOscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    purrOscillator.start();
+    mod.start();
+    
+    isPurring = true;
+    musicBtn.classList.add("playing");
+    musicBtn.textContent = "🎶";
+  }
+}
+
+musicBtn.addEventListener("click", togglePurr);
+
+// --- ЦВЕТА И МАССИВЫ ---
 const bgColors = [
   "#fffaf0", "#f0f9ff", "#fdf2f8", "#eef2ff", "#f0fff4", "#fffbeb",
   "#faf5ff", "#f0fdf4", "#fff1f2", "#f5f3ff"
@@ -66,6 +121,13 @@ const normalMessages = [
   "Спасибо, что ты есть у меня ✨"
 ];
 
+const hugMessages = [
+  "Крепкие-крепкие обнимашки! Я держу тебя за руку ❤️",
+  "Зажмурься и почувствуй, как я сильно тебя обнимаю 🤗",
+  "Тепло моих обнимашек летит прямо к тебе сквозь любые километры ✨",
+  "Ты в безопасности. Я рядом, муррр... 🐾"
+];
+
 const photoTasks = [
   "🐱 Изобрази котика и отправь мне фото!",
   "😾 Отправь мне фото, где ты делаешь смешную рожицу!",
@@ -79,20 +141,14 @@ const photoTasks = [
   "❤️ Сделай фото, где ты руками показываешь сердечко!"
 ];
 
-// МЕХАНИКА "КОЛОДЫ КАРТ"ДЛЯ ГАРАНТИИ БЕЗ ПОВТОРОВ
 let messagesDeck = [];
 
 function getNextMessage() {
   if (messagesDeck.length === 0) {
-    // Перемешиваем весь список заново, когда фразы закончились
     messagesDeck = [...normalMessages].sort(() => Math.random() - 0.5);
   }
-  // Достаём и удаляем верхнюю фразу
   return messagesDeck.pop();
 }
-
-let lastBgIndex = -1;
-let lastFilterIndex = -1;
 
 function getNewIndex(max, last) {
   let newIdx = Math.floor(Math.random() * max);
@@ -102,13 +158,11 @@ function getNewIndex(max, last) {
   return newIdx;
 }
 
-function spawnHeartsJS() {
+function spawnHeartsJS(count = 15) {
   const heartIcons = ["❤️", "💖", "💕", "💗", "💓", "🌸", "✨"];
-  
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < count; i++) {
     const heart = document.createElement("div");
     heart.textContent = heartIcons[Math.floor(Math.random() * heartIcons.length)];
-    
     heart.style.position = "fixed";
     heart.style.left = (Math.random() * 80 + 10) + "vw";
     heart.style.top = (Math.random() * 60 + 20) + "vh";
@@ -125,19 +179,59 @@ function spawnHeartsJS() {
       heart.style.opacity = "0";
     });
 
-    setTimeout(() => {
-      heart.remove();
-    }, 1500);
+    setTimeout(() => { heart.remove(); }, 1500);
   }
 }
 
+// --- ЛОГИКА ДОЛГОГО НАЖАТИЯ (ОБНИМАШКИ) ---
+let holdTimer = null;
+let isHolding = false;
+
+function startHold() {
+  if (isTaskActive) return;
+  isHolding = false;
+  holdTimer = setTimeout(() => {
+    isHolding = true;
+    
+    // Вибрация телефона при обнимашках (если поддерживается)
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    
+    catContainer.classList.add("hugging");
+    spawnHeartsJS(30); // Большой салют из сердечек
+    
+    const randomHugMsg = hugMessages[Math.floor(Math.random() * hugMessages.length)];
+    messageText.textContent = randomHugMsg;
+  }, 1200); // 1.2 секунды удерживания
+}
+
+function endHold() {
+  clearTimeout(holdTimer);
+  if (catContainer.classList.contains("hugging")) {
+    setTimeout(() => {
+      catContainer.classList.remove("hugging");
+    }, 1000);
+  }
+}
+
+catContainer.addEventListener("touchstart", startHold);
+catContainer.addEventListener("touchend", endHold);
+catContainer.addEventListener("mousedown", startHold);
+catContainer.addEventListener("mouseup", endHold);
+
+// Клик по котику
 catContainer.addEventListener("click", () => {
   if (isTaskActive) {
     status.textContent = "⚠️ Сначала отправь фото, чтобы продолжить!";
     return;
   }
 
-  spawnHeartsJS();
+  // Если это было долгое удерживание для обнимашек, обычный клик не срабатывает
+  if (isHolding) {
+    isHolding = false;
+    return;
+  }
+
+  spawnHeartsJS(15);
 
   const isTask = Math.random() < 0.05;
 
@@ -148,14 +242,11 @@ catContainer.addEventListener("click", () => {
     photoBox.style.display = "flex";
     status.textContent = "Задание обязательно к исполнению 🐾";
   } else {
-    // Гарантия смены цвета фона и цвета котика
     lastBgIndex = getNewIndex(bgColors.length, lastBgIndex);
     lastFilterIndex = getNewIndex(catFilters.length, lastFilterIndex);
 
     document.body.style.backgroundColor = bgColors[lastBgIndex];
     catContainer.style.filter = catFilters[lastFilterIndex];
-    
-    // Получаем гарантированно не повторявшуюся фразу
     messageText.textContent = getNextMessage();
   }
 });
