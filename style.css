@@ -1,82 +1,161 @@
-/* Общие настройки для максимального комфорта на телефоне */
 * {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent; /* Убираем синее выделение при нажатии на iOS */
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    
-    /* Начальный уютный фон */
-    background-color: #fffaf0; 
-    
-    /* Плавная смена фона при нажатии */
-    transition: background-color 0.8s ease;
-    overflow: hidden; /* Запрещаем скролл */
+  margin: 0;
+  padding: 20px;
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #fffaf0;
+  transition: background-color 0.8s ease;
+  overflow: hidden; /* Запрещаем скролл, чтобы сердечки не раздвигали экран */
+  position: relative;
 }
 
-.cozy-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 90%;
-    max-width: 400px;
+/* Контейнер для анимации сердечек */
+#hearts-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none; /* Сердечки не мешают кликам */
+  z-index: 0;
 }
 
-/* Контейнер котика */
+.heart {
+  position: absolute;
+  font-size: 20px;
+  user-select: none;
+  animation: floatUp 2s ease-out forwards;
+  opacity: 0.8;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(0.8) rotate(0deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-120px) scale(1.4) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+.cozy-card {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 1; /* Карточка всегда поверх сердечек */
+}
+
 #cat-container {
-    width: 150px;
-    height: 150px;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    
-    /* Плавная анимация изменения размера и цвета котика */
-    transition: transform 0.3s ease, filter 0.8s ease;
+  width: 160px;
+  height: 160px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease, filter 0.8s ease;
+  margin-bottom: 20px;
 }
 
-/* Эффект нажатия на котика (микро-отклик) */
 #cat-container:active {
-    transform: scale(0.92);
+  transform: scale(0.92);
 }
 
 #cat-img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-/* Область сообщения */
-#message-area {
-    margin-top: 40px;
-    height: 60px; /* Фиксированная высота, чтобы текст не прыгал */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 #message-text {
-    font-size: 18px;
-    color: #555;
-    text-align: center;
-    margin: 0;
-    padding: 0 10px;
-    
-    /* Анимация появления текста */
-    animation: fadeIn 1s ease;
+  font-size: 19px;
+  font-weight: 500;
+  color: #4a4a4a;
+  margin: 0 0 20px 0;
+  line-height: 1.4;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Простая анимация появления */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+#photo-box {
+  display: none;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 18px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: popIn 0.4s ease;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.file-input-label {
+  background-color: #ffb7b2;
+  color: #333;
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  display: block;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+#preview {
+  display: none;
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+#send-btn {
+  background-color: #e2e8f0;
+  color: #a0aec0;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: bold;
+  border: none;
+  border-radius: 14px;
+  cursor: not-allowed;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+#send-btn.active {
+  background-color: #b5ead7;
+  color: #2d3748;
+  cursor: pointer;
+}
+
+#status {
+  font-size: 13px;
+  color: #718096;
+  margin: 0;
 }
