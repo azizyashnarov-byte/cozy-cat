@@ -12,42 +12,49 @@ let currentFile = null;
 let lastBgIndex = -1;
 let lastFilterIndex = -1;
 
-// --- АУДИО МУРЛЫКАНЬЯ (Web Audio API) ---
+// --- АУДИО МУРЛЫКАНЬЯ (Снятие блокировки браузеров) ---
 let audioCtx = null;
 let purrOscillator = null;
 let isPurring = false;
 
-function togglePurr() {
+// Активация аудио-контекста при первом касании
+function initAudio() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+}
+
+function togglePurr() {
+  initAudio();
 
   if (isPurring) {
     if (purrOscillator) {
-      purrOscillator.stop();
+      try { purrOscillator.stop(); } catch(e) {}
       purrOscillator.disconnect();
     }
     isPurring = false;
     musicBtn.classList.remove("playing");
     musicBtn.textContent = "🎵";
   } else {
-    // Создаем мягкий низкочастотный звук мурлыканья
+    // Создаем глухое мягкое мурлыканье
     purrOscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     
     purrOscillator.type = "sine";
-    purrOscillator.frequency.setValueAtTime(28, audioCtx.currentTime); // Низкая частота кошачьего мурлыканья
+    purrOscillator.frequency.setValueAtTime(28, audioCtx.currentTime);
     
-    // Модуляция для создания ритма дыхания
     const mod = audioCtx.createOscillator();
     mod.frequency.setValueAtTime(2.5, audioCtx.currentTime);
     const modGain = audioCtx.createGain();
-    modGain.gain.setValueAtTime(10, audioCtx.currentTime);
+    modGain.gain.setValueAtTime(8, audioCtx.currentTime);
     
     mod.connect(modGain);
     modGain.connect(purrOscillator.frequency);
     
-    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
     
     purrOscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
@@ -188,20 +195,18 @@ let holdTimer = null;
 let isHolding = false;
 
 function startHold() {
+  initAudio(); // Разблокируем звук
   if (isTaskActive) return;
   isHolding = false;
   holdTimer = setTimeout(() => {
     isHolding = true;
-    
-    // Вибрация телефона при обнимашках (если поддерживается)
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-    
     catContainer.classList.add("hugging");
-    spawnHeartsJS(30); // Большой салют из сердечек
+    spawnHeartsJS(30);
     
     const randomHugMsg = hugMessages[Math.floor(Math.random() * hugMessages.length)];
     messageText.textContent = randomHugMsg;
-  }, 1200); // 1.2 секунды удерживания
+  }, 1200);
 }
 
 function endHold() {
@@ -220,12 +225,12 @@ catContainer.addEventListener("mouseup", endHold);
 
 // Клик по котику
 catContainer.addEventListener("click", () => {
+  initAudio(); // Разблокируем звук
   if (isTaskActive) {
     status.textContent = "⚠️ Сначала отправь фото, чтобы продолжить!";
     return;
   }
 
-  // Если это было долгое удерживание для обнимашек, обычный клик не срабатывает
   if (isHolding) {
     isHolding = false;
     return;
