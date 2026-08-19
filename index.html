@@ -146,7 +146,7 @@
             // Нормализуем фото перед отправкой (это исправит баг с фронтальной камерой)
             const cleanFile = await normalizeImage(currentFile);
             
-            status.textContent = "⏳ Отправка в Telegram...";
+            status.textContent = "⏳ Отправка...";
             
             const formData = new FormData();
             formData.append("photo", cleanFile);
