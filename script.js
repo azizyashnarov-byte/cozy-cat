@@ -9,9 +9,6 @@ const preview = document.getElementById("preview");
 let isTaskActive = false;
 let currentFile = null;
 
-// Переменная для запоминания последнего показанного сообщения
-let lastMessageIndex = -1;
-
 const bgColors = [
   "#fffaf0", "#f0f9ff", "#fdf2f8", "#eef2ff", "#f0fff4", "#fffbeb",
   "#faf5ff", "#f0fdf4", "#fff1f2", "#f5f3ff"
@@ -26,7 +23,6 @@ const catFilters = [
   "hue-rotate(-40deg) brightness(1.02)"
 ];
 
-// --- 40 УЮТНЫХ И МИЛЫХ СООБЩЕНИЙ ---
 const normalMessages = [
   "Мяу! Нажми ещё раз 🐾",
   "Просто расслабься и улыбнись 🧘‍♀️",
@@ -70,7 +66,6 @@ const normalMessages = [
   "Спасибо, что ты есть у меня ✨"
 ];
 
-// --- 10 ЗАДАНИЙ С ФОТО ---
 const photoTasks = [
   "🐱 Изобрази котика и отправь мне фото!",
   "😾 Отправь мне фото, где ты делаешь смешную рожицу!",
@@ -84,7 +79,29 @@ const photoTasks = [
   "❤️ Сделай фото, где ты руками показываешь сердечко!"
 ];
 
-// Эффект вылетающих сердечек
+// МЕХАНИКА "КОЛОДЫ КАРТ"ДЛЯ ГАРАНТИИ БЕЗ ПОВТОРОВ
+let messagesDeck = [];
+
+function getNextMessage() {
+  if (messagesDeck.length === 0) {
+    // Перемешиваем весь список заново, когда фразы закончились
+    messagesDeck = [...normalMessages].sort(() => Math.random() - 0.5);
+  }
+  // Достаём и удаляем верхнюю фразу
+  return messagesDeck.pop();
+}
+
+let lastBgIndex = -1;
+let lastFilterIndex = -1;
+
+function getNewIndex(max, last) {
+  let newIdx = Math.floor(Math.random() * max);
+  while (newIdx === last && max > 1) {
+    newIdx = Math.floor(Math.random() * max);
+  }
+  return newIdx;
+}
+
 function spawnHeartsJS() {
   const heartIcons = ["❤️", "💖", "💕", "💗", "💓", "🌸", "✨"];
   
@@ -114,17 +131,6 @@ function spawnHeartsJS() {
   }
 }
 
-// Функция для генерации индекса без повтора подряд
-function getUniqueMessageIndex() {
-  let newIndex;
-  do {
-    newIndex = Math.floor(Math.random() * normalMessages.length);
-  } while (newIndex === lastMessageIndex && normalMessages.length > 1);
-  
-  lastMessageIndex = newIndex;
-  return newIndex;
-}
-
 catContainer.addEventListener("click", () => {
   if (isTaskActive) {
     status.textContent = "⚠️ Сначала отправь фото, чтобы продолжить!";
@@ -142,16 +148,15 @@ catContainer.addEventListener("click", () => {
     photoBox.style.display = "flex";
     status.textContent = "Задание обязательно к исполнению 🐾";
   } else {
-    const randomBg = bgColors[Math.floor(Math.random() * bgColors.length)];
-    const randomFilter = catFilters[Math.floor(Math.random() * catFilters.length)];
-    
-    // Берем гарантированно новое сообщение
-    const msgIndex = getUniqueMessageIndex();
-    const randomMsg = normalMessages[msgIndex];
+    // Гарантия смены цвета фона и цвета котика
+    lastBgIndex = getNewIndex(bgColors.length, lastBgIndex);
+    lastFilterIndex = getNewIndex(catFilters.length, lastFilterIndex);
 
-    document.body.style.backgroundColor = randomBg;
-    catContainer.style.filter = randomFilter;
-    messageText.textContent = randomMsg;
+    document.body.style.backgroundColor = bgColors[lastBgIndex];
+    catContainer.style.filter = catFilters[lastFilterIndex];
+    
+    // Получаем гарантированно не повторявшуюся фразу
+    messageText.textContent = getNextMessage();
   }
 });
 
