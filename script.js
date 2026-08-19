@@ -6,18 +6,26 @@ const sendBtn = document.getElementById("send-btn");
 const status = document.getElementById("status");
 const preview = document.getElementById("preview");
 const musicBtn = document.getElementById("music-btn");
+const ringElement = document.getElementById("ring-element");
+
+// Ссылка на романтический отрывок из фильма (меняй на любое видео на YouTube)
+const movieUrl = "https://www.youtube.com/watch?v=2vjPBrBU-TM";
 
 let isTaskActive = false;
+let isFinalActive = false;
 let currentFile = null;
 let lastBgIndex = -1;
 let lastFilterIndex = -1;
 
-// --- АУДИО МУРЛЫКАНЬЯ (Снятие блокировки браузеров) ---
+// --- СЧЁТЧИК ДЛЯ КУЛЬМИНАЦИИ ---
+let messagesReadCount = 0;
+const TOTAL_MESSAGES_REQUIRED = 40; // После 40 прочитанных слов включается финал
+
+// --- АУДИО МУРЛЫКАНЬЯ ---
 let audioCtx = null;
 let purrOscillator = null;
 let isPurring = false;
 
-// Активация аудио-контекста при первом касании
 function initAudio() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -39,7 +47,6 @@ function togglePurr() {
     musicBtn.classList.remove("playing");
     musicBtn.textContent = "🎵";
   } else {
-    // Создаем глухое мягкое мурлыканье
     purrOscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     
@@ -70,7 +77,6 @@ function togglePurr() {
 
 musicBtn.addEventListener("click", togglePurr);
 
-// --- ЦВЕТА И МАССИВЫ ---
 const bgColors = [
   "#fffaf0", "#f0f9ff", "#fdf2f8", "#eef2ff", "#f0fff4", "#fffbeb",
   "#faf5ff", "#f0fdf4", "#fff1f2", "#f5f3ff"
@@ -166,7 +172,7 @@ function getNewIndex(max, last) {
 }
 
 function spawnHeartsJS(count = 15) {
-  const heartIcons = ["❤️", "💖", "💕", "💗", "💓", "🌸", "✨"];
+  const heartIcons = ["❤️", "💖", "💕", "💗", "💓", "🌸", "✨", "💍"];
   for (let i = 0; i < count; i++) {
     const heart = document.createElement("div");
     heart.textContent = heartIcons[Math.floor(Math.random() * heartIcons.length)];
@@ -190,13 +196,35 @@ function spawnHeartsJS(count = 15) {
   }
 }
 
-// --- ЛОГИКА ДОЛГОГО НАЖАТИЯ (ОБНИМАШКИ) ---
+// --- ФИНАЛЬНАЯ СЦЕНА ПРИЗНАНИЯ В ЛЮБВИ ---
+function triggerLoveProposal() {
+  isFinalActive = true;
+  ringElement.style.display = "block"; // Высовывается кольцо
+  messageText.classList.add("final-love");
+  messageText.textContent = "Я тебя люблю, Асялим ❤️💍";
+  
+  // Дополнительный салют из сердечек
+  spawnHeartsJS(40);
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 300]);
+
+  // Запуск 10-секундного отсчета до перехода на романтический отрывок
+  setTimeout(() => {
+    document.body.style.transition = "opacity 2s ease";
+    document.body.style.opacity = "0"; // Плавное затемнение экрана
+    
+    setTimeout(() => {
+      window.location.href = movieUrl; // Переход на отрывок из кино
+    }, 2000);
+  }, 10000); // 10 секунд
+}
+
+// Долгое нажатие (Обнимашки)
 let holdTimer = null;
 let isHolding = false;
 
 function startHold() {
-  initAudio(); // Разблокируем звук
-  if (isTaskActive) return;
+  initAudio();
+  if (isTaskActive || isFinalActive) return;
   isHolding = false;
   holdTimer = setTimeout(() => {
     isHolding = true;
@@ -223,20 +251,24 @@ catContainer.addEventListener("touchend", endHold);
 catContainer.addEventListener("mousedown", startHold);
 catContainer.addEventListener("mouseup", endHold);
 
-// Клик по котику
+// Клик по котикус
 catContainer.addEventListener("click", () => {
-  initAudio(); // Разблокируем звук
-  if (isTaskActive) {
-    status.textContent = "⚠️ Сначала отправь фото, чтобы продолжить!";
-    return;
-  }
+  initAudio();
+  if (isTaskActive || isFinalActive) return;
 
   if (isHolding) {
     isHolding = false;
     return;
   }
 
+  messagesReadCount++; // Увеличиваем счётчик кликов
   spawnHeartsJS(15);
+
+  // ПРОВЕРКА ФИНАЛА: На 40-й клик включается предложение!
+  if (messagesReadCount >= TOTAL_MESSAGES_REQUIRED) {
+    triggerLoveProposal();
+    return;
+  }
 
   const isTask = Math.random() < 0.05;
 
