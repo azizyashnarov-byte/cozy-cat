@@ -1,39 +1,272 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cozy Cat 🐱</title>
-    <!-- Подключаем стили -->
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cozy Cat 🐱</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      width: 100vw;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #fffaf0;
+      transition: background-color 0.8s ease;
+      overflow-x: hidden;
+    }
+
+    .cozy-card {
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* Котик */
+    #cat-container {
+      width: 160px;
+      height: 160px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.2s ease, filter 0.8s ease;
+      margin-bottom: 25px;
+    }
+
+    #cat-container:active {
+      transform: scale(0.92);
+    }
+
+    #cat-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Сообщение */
+    #message-text {
+      font-size: 19px;
+      font-weight: 500;
+      color: #4a4a4a;
+      margin: 0 0 25px 0;
+      line-height: 1.4;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Форма фото (по умолчанию скрыта, включается при задании) */
+    #photo-box {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(5px);
+      padding: 15px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .file-input-label {
+      background-color: #e2e8f0;
+      color: #4a5568;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    #preview {
+      display: none;
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+
+    #send-btn {
+      background-color: #ffb7b2;
+      color: #2d3748;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: bold;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      width: 100%;
+      transition: opacity 0.2s;
+    }
+
+    #send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #status {
+      font-size: 13px;
+      color: #718096;
+      margin: 0;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="cozy-wrapper">
-        <!-- Кот — центральный элемент, на который нужно нажимать -->
-        <div id="cat-container" class="cat-standard">
-            <img src="assets/cat.png" alt="Cozy Cat" id="cat-img">
-        </div>
-
-        <!-- Область для текста сообщений -->
-        <div id="message-area">
-            <p id="message-text">Мяу! Нажми на меня 🐾</p>
-        </div>
+  <div class="cozy-card">
+    
+    <!-- Наш котик -->
+    <div id="cat-container">
+      <img src="assets/cat.svg" alt="Cozy Cat" id="cat-img">
     </div>
 
-    <!-- Подключаем логику -->
-    <script src="script.js"></script>
-</body>
-</html>
+    <!-- Текст сообщения -->
+    <p id="message-text">Мяу! Нажми на меня 🐾</p>
 
-  <h1>🐱 Отправка фото (Камера / Галерея)</h1>
+    <!-- Блок отправки фото -->
+    <div id="photo-box">
+      <label for="photo-input" class="file-input-label">📸 Выбрать / Сделать фото</label>
+      <input type="file" id="photo-input" accept="image/*">
+      
+      <img id="preview" alt="Предпросмотр">
+      
+      <button id="send-btn" disabled>Отправить фото ❤️</button>
+      <p id="status">Выбери фото или сделай селфи</p>
+    </div>
 
-  <div class="file-select">
-    <!-- Отсутствие capture="camera" даёт нативное меню выбора: Камера или Галерея -->
-    <input type="file" id="photo" accept="image/*">
   </div>
 
-  <div id="preview-container">
+  <script>
+    const catContainer = document.getElementById("cat-container");
+    const messageText = document.getElementById("message-text");
+    const photoInput = document.getElementById("photo-input");
+    const sendBtn = document.getElementById("send-btn");
+    const status = document.getElementById("status");
+    const preview = document.getElementById("preview");
+
+    // Палитра мягких фонов и фильтров для котика
+    const bgColors = ["#fffaf0", "#f0f9ff", "#fdf2f8", "#eef2ff", "#f0fff4", "#fffbeb"];
+    const catFilters = [
+      "hue-rotate(0deg)",
+      "hue-rotate(25deg) brightness(1.05)",
+      "hue-rotate(-20deg) brightness(0.95)",
+      "hue-rotate(180deg) sepia(0.2)"
+    ];
+
+    const messages = [
+      "Мяу! Нажми ещё раз 🐾",
+      "Просто расслабься... 🧘‍♀️",
+      "Тёплые обнимашки тебе! 🤗",
+      "Ты чудо ✨",
+      "Всё будет хорошо ❤️",
+      "Муррр... Как уютно"
+    ];
+
+    let currentFile = null;
+
+    // Нажатие на котика (смена цвета и текста)
+    catContainer.addEventListener("click", () => {
+      const randomBg = bgColors[Math.floor(Math.random() * bgColors.length)];
+      const randomFilter = catFilters[Math.floor(Math.random() * catFilters.length)];
+      const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+
+      document.body.style.backgroundColor = randomBg;
+      catContainer.style.filter = randomFilter;
+      messageText.textContent = randomMsg;
+    });
+
+    // Обработка фото через Canvas (убирает баг с селфи)
+    async function normalizeImage(file) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const maxDim = 1200;
+          let w = img.width, h = img.height;
+
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h *= maxDim / w; w = maxDim; }
+            else { w *= maxDim / h; h = maxDim; }
+          }
+
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+
+          canvas.toBlob((blob) => {
+            resolve(new File([blob], "photo.jpg", { type: "image/jpeg" }));
+          }, "image/jpeg", 0.85);
+        };
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    photoInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) {
+        currentFile = e.target.files[0];
+        preview.src = URL.createObjectURL(currentFile);
+        preview.style.display = "block";
+        sendBtn.disabled = false;
+        status.textContent = "Фото готово к отправке!";
+      }
+    });
+
+    sendBtn.addEventListener("click", async () => {
+      if (!currentFile) return;
+
+      status.textContent = "⚙️ Обработка...";
+      sendBtn.disabled = true;
+
+      try {
+        const cleanFile = await normalizeImage(currentFile);
+        status.textContent = "⏳ Отправка...";
+
+        const formData = new FormData();
+        formData.append("photo", cleanFile);
+
+        const res = await fetch("https://broken-wave-1cb1.azizyashnarov.workers.dev/send-photo", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          status.textContent = "✅ Фото доставлено!";
+          preview.style.display = "none";
+          photoInput.value = "";
+          currentFile = null;
+        } else {
+          throw new Error();
+        }
+      } catch (err) {
+        status.textContent = "❌ Ошибка отправки.";
+        sendBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
     <img id="preview" alt="Предпросмотр">
   </div>
 
