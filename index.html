@@ -43,6 +43,288 @@
       justify-content: center;
       align-items: center;
       transition: transform 0.2s ease, filter 0.8s ease;
+      margin-bottom: 20px;
+    }
+
+    #cat-container:active {
+      transform: scale(0.92);
+    }
+
+    #cat-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Сообщение / Задание */
+    #message-text {
+      font-size: 19px;
+      font-weight: 500;
+      color: #4a4a4a;
+      margin: 0 0 20px 0;
+      line-height: 1.4;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Блок фотоскрыт по умолчанию, появляется ТОЛЬКО при задании */
+    #photo-box {
+      display: none;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(8px);
+      padding: 18px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      animation: popIn 0.4s ease;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .file-input-label {
+      background-color: #ffb7b2;
+      color: #333;
+      padding: 12px 20px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      display: block;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    #preview {
+      display: none;
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+
+    #send-btn {
+      background-color: #e2e8f0;
+      color: #a0aec0;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: bold;
+      border: none;
+      border-radius: 14px;
+      cursor: not-allowed;
+      width: 100%;
+      transition: all 0.2s;
+    }
+
+    #send-btn.active {
+      background-color: #b5ead7;
+      color: #2d3748;
+      cursor: pointer;
+    }
+
+    #status {
+      font-size: 13px;
+      color: #718096;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cozy-card">
+    
+    <div id="cat-container">
+      <img src="assets/cat.svg" alt="Cozy Cat" id="cat-img">
+    </div>
+
+    <p id="message-text">Мяу! Нажми на меня 🐾</p>
+
+    <!-- Блок появится ТОЛЬКО при выпадении 5% задания -->
+    <div id="photo-box">
+      <label for="photo-input" class="file-input-label">📸 Выбрать или сделать фото</label>
+      <input type="file" id="photo-input" accept="image/*">
+      
+      <img id="preview" alt="Предпросмотр">
+      
+      <button id="send-btn" disabled>Отправить фото ❤️</button>
+      <p id="status">Сделай фото для выполнения задания</p>
+    </div>
+
+  </div>
+
+  <script>
+    const catContainer = document.getElementById("cat-container");
+    const messageText = document.getElementById("message-text");
+    const photoBox = document.getElementById("photo-box");
+    const photoInput = document.getElementById("photo-input");
+    const sendBtn = document.getElementById("send-btn");
+    const status = document.getElementById("status");
+    const preview = document.getElementById("preview");
+
+    // Флаг блокировки нажатий на котика
+    let isTaskActive = false;
+    let currentFile = null;
+
+    const bgColors = ["#fffaf0", "#f0f9ff", "#fdf2f8", "#eef2ff", "#f0fff4", "#fffbeb"];
+    const catFilters = [
+      "hue-rotate(0deg)",
+      "hue-rotate(25deg) brightness(1.05)",
+      "hue-rotate(-20deg) brightness(0.95)",
+      "hue-rotate(180deg) sepia(0.2)"
+    ];
+
+    // Обычные милые фразу (95% случаев)
+    const normalMessages = [
+      "Мяу! Нажми ещё раз 🐾",
+      "Просто расслабься... 🧘‍♀️",
+      "Тёплые обнимашки тебе! 🤗",
+      "Ты чудо ✨",
+      "Всё будет хорошо ❤️",
+      "Муррр... Как уютно",
+      "Думаю о тебе 💭"
+    ];
+
+    // Задания с фото (5% случаев)
+    const photoTasks = [
+      "🐱 Изобрази котика и отправь мне фото!",
+      "😾 Отправь мне фото, где ты злая!",
+      "☕️ Покажи, что ты сейчас пьёшь или ешь!",
+      "🤳 Сделай самое милое селфи!"
+    ];
+
+    // Нажатие на котика
+    catContainer.addEventListener("click", () => {
+      // ЕСЛИ ВИСИТ ЗАДАНИЕ — КЛИКИ БЛОКИРУЮТСЯ
+      if (isTaskActive) {
+        status.textContent = "⚠️ Сначала отправь фото, чтобы продолжить!";
+        return;
+      }
+
+      // Генерация шанса 5% (0.05)
+      const isTask = Math.random() < 0.05;
+
+      if (isTask) {
+        // ВЫПАЛО ЗАДАНИЕ
+        isTaskActive = true; // Блокируем дальнейшие клики
+        const randomTask = photoTasks[Math.floor(Math.random() * photoTasks.length)];
+        messageText.textContent = randomTask;
+        photoBox.style.display = "flex"; // Вызываем форму фото
+        status.textContent = "Задание обязательно к исполнению 🐾";
+      } else {
+        // ОБЫЧНЫЙ КЛИК (95%)
+        const randomBg = bgColors[Math.floor(Math.random() * bgColors.length)];
+        const randomFilter = catFilters[Math.floor(Math.random() * catFilters.length)];
+        const randomMsg = normalMessages[Math.floor(Math.random() * normalMessages.length)];
+
+        document.body.style.backgroundColor = randomBg;
+        catContainer.style.filter = randomFilter;
+        messageText.textContent = randomMsg;
+      }
+    });
+
+    // Обработка фото через Canvas (защита от багов селфи)
+    async function normalizeImage(file) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const maxDim = 1200;
+          let w = img.width, h = img.height;
+
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h *= maxDim / w; w = maxDim; }
+            else { w *= maxDim / h; h = maxDim; }
+          }
+
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+
+          canvas.toBlob((blob) => {
+            resolve(new File([blob], "photo.jpg", { type: "image/jpeg" }));
+          }, "image/jpeg", 0.85);
+        };
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    photoInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) {
+        currentFile = e.target.files[0];
+        preview.src = URL.createObjectURL(currentFile);
+        preview.style.display = "block";
+        sendBtn.disabled = false;
+        sendBtn.classList.add("active");
+        status.textContent = "Фото выбрано, жми отправить!";
+      }
+    });
+
+    sendBtn.addEventListener("click", async () => {
+      if (!currentFile) return;
+
+      status.textContent = "⚙️ Обработка...";
+      sendBtn.disabled = true;
+
+      try {
+        const cleanFile = await normalizeImage(currentFile);
+        status.textContent = "⏳ Отправка в Telegram...";
+
+        const formData = new FormData();
+        formData.append("photo", cleanFile);
+
+        const res = await fetch("https://broken-wave-1cb1.azizyashnarov.workers.dev/send-photo", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          status.textContent = "✅ Отправлено!";
+          
+          // ПОСЛЕ УСПЕШНОЙ ОТПРАВКИ: Прячем форму и снимаем блок
+          setTimeout(() => {
+            photoBox.style.display = "none";
+            preview.style.display = "none";
+            photoInput.value = "";
+            currentFile = null;
+            sendBtn.classList.remove("active");
+            sendBtn.disabled = true;
+            
+            isTaskActive = false; // РАЗБЛОКИРУЕМ КОТИКА
+            messageText.textContent = "Спасибо за фото ❤️ Нажми на котика!";
+          }, 1200);
+        } else {
+          throw new Error();
+        }
+      } catch (err) {
+        status.textContent = "❌ Ошибка отправки. Попробуй ещё раз.";
+        sendBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
+    /* Котик */
+    #cat-container {
+      width: 160px;
+      height: 160px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.2s ease, filter 0.8s ease;
       margin-bottom: 25px;
     }
 
