@@ -9,58 +9,107 @@ const preview = document.getElementById("preview");
 let isTaskActive = false;
 let currentFile = null;
 
-const bgColors = ["#fffaf0", "#f0f9ff", "#fdf2f8", "#eef2ff", "#f0fff4", "#fffbeb"];
+const bgColors = [
+  "#fffaf0", "#f0f9ff", "#fdf2f8", "#eef2ff", "#f0fff4", "#fffbeb",
+  "#faf5ff", "#f0fdf4", "#fff1f2", "#f5f3ff"
+];
+
 const catFilters = [
   "hue-rotate(0deg)",
   "hue-rotate(25deg) brightness(1.05)",
   "hue-rotate(-20deg) brightness(0.95)",
-  "hue-rotate(180deg) sepia(0.2)"
+  "hue-rotate(180deg) sepia(0.2)",
+  "hue-rotate(140deg) brightness(1.1)",
+  "hue-rotate(-40deg) brightness(1.02)"
 ];
 
+// --- 40 УЮТНЫХ И МИЛЫХ СООБЩЕНИЙ ---
 const normalMessages = [
   "Мяу! Нажми ещё раз 🐾",
-  "Просто расслабься... 🧘‍♀️",
-  "Тёплые обнимашки тебе! 🤗",
-  "Ты чудо ✨",
-  "Всё будет хорошо ❤️",
-  "Муррр... Как уютно",
-  "Думаю о тебе 💭"
+  "Просто расслабься и улыбнись 🧘‍♀️",
+  "Тёплые обнимашки тебе через экран! 🤗",
+  "Ты невероятное чудо ✨",
+  "Всё обязательно будет хорошо ❤️",
+  "Муррр... Как с тобой уютно 🐱",
+  "Думаю о тебе прямо сейчас 💭",
+  "Не забывай пить водичку и отдыхать 💧",
+  "Ты делаешь этот мир значительно светлее ☀️",
+  "Отправляю тебе виртуальный чмок! 💋",
+  "Ты справляешься со всем лучше всех 🌸",
+  "Сделай глубокий вдох и выдох... 🍃",
+  "Кто тут самая милая? Ты! 🥰",
+  "Пусть этот день принесёт тебе радость 🎁",
+  "Я всегда рядом, даже если далеко 🌌",
+  "Твоя улыбка — лучшее, что есть на свете 💖",
+  "Погладь котика ещё раз! 🐾",
+  "Ты заслуживаешь всего самого прекрасного ✨",
+  "Надеюсь, ты сегодня вкусно поела 🍕",
+  "Скучаю по тебе очень сильно... 🥺",
+  "Ты мой самый любимый человечек ❤️",
+  "Ты лучик солнца в пасмурный день 🌤️",
+  "Мур-мур-мур! Котик передаёт привет 🐱",
+  "Позволь себе немного отдохнуть ☕️",
+  "Ты сильная, умная и очень красивая 🌺",
+  "Всё получится, я в тебя верю! 🚀",
+  "Завари себе вкусный чай 🍵",
+  "Каждое твоё сообщение вызывает улыбку 😊",
+  "Ты — моё главное вдохновение ✨",
+  "Укутайся в пледик и расслабься 🛋️",
+  "Обнимаю так крепко, как только могу! 🤗",
+  "Пусть все заботы растворятся ☁️",
+  "Ты украшение этого дня 🌷",
+  "Ты прекрасна в любой момент 💖",
+  "Сложные дни проходят, а ты остаёшься суперзвездой ⭐",
+  "Сладких снов, если ты скоро ляжешь спать 🌙",
+  "Ты даришь мне столько тепла! 🔥",
+  "Мяу! Ты самая лучшая! 🐾",
+  "Просто хочу, чтобы ты знала: ты важна ❤️",
+  "Спасибо, что ты есть у меня ✨"
 ];
 
+// --- 10 ЗАДАНИЙ С ФОТО ---
 const photoTasks = [
   "🐱 Изобрази котика и отправь мне фото!",
-  "😾 Отправь мне фото, где ты злая!",
+  "😾 Отправь мне фото, где ты делаешь смешное рожицу!",
   "☕️ Покажи, что ты сейчас пьёшь или ешь!",
-  "🤳 Сделай самое милое селфи!"
+  "🤳 Сделай самое милое селфи прямо сейчас!",
+  "🧸 Отправь фото своего любимого предмета рядом!",
+  "✌️ Сделай селфи с жестом «V» (милый знак)!",
+  "👀 Покажи свои красивые глаза крупным планом!",
+  "👟 Отправь фото своих ног/носочков прямо сейчас!",
+  "🌤️ Покажи фото вида из твоего окна!",
+  "❤️ Сделай фото, где ты руками показываешь сердечко!"
 ];
 
-// Автоматически создаем слой для сердечек
-let heartsContainer = document.getElementById("hearts-container");
-if (!heartsContainer) {
-  heartsContainer = document.createElement("div");
-  heartsContainer.id = "hearts-container";
-  document.body.appendChild(heartsContainer);
-}
-
-// Функция летящих сердечек
-function spawnHearts() {
-  const icons = ["❤️", "💖", "💕", "💗", "💓", "✨", "🌸"];
+// --- ЭФФЕКТ СЕРДЕЧЕК ПРЯМО НА JS ---
+function spawnHeartsJS() {
+  const heartIcons = ["❤️", "💖", "💕", "💗", "💓", "🌸", "✨"];
   
   for (let i = 0; i < 15; i++) {
-    const heart = document.createElement("span");
-    heart.className = "heart-particle";
-    heart.textContent = icons[Math.floor(Math.random() * icons.length)];
+    const heart = document.createElement("div");
+    heart.textContent = heartIcons[Math.floor(Math.random() * heartIcons.length)];
     
-    // Позиция по всему экрану
-    heart.style.left = Math.random() * 90 + 5 + "vw";
-    heart.style.top = Math.random() * 70 + 15 + "vh";
-    heart.style.fontSize = Math.random() * 15 + 18 + "px";
-    
-    heartsContainer.appendChild(heart);
+    // Абсолютные стили прямо в JS (гарантированно сработает)
+    heart.style.position = "fixed";
+    heart.style.left = (Math.random() * 80 + 10) + "vw";
+    heart.style.top = (Math.random() * 60 + 20) + "vh";
+    heart.style.fontSize = (Math.random() * 20 + 20) + "px";
+    heart.style.pointerEvents = "none";
+    heart.style.zIndex = "9999";
+    heart.style.transition = "all 1.5s ease-out";
+    heart.style.opacity = "1";
+
+    document.body.appendChild(heart);
+
+    // Анимация полета вверх
+    requestAnimationFrame(() => {
+      heart.style.transform = `translateY(-120px) scale(1.3) rotate(${(Math.random() - 0.5) * 60}deg)`;
+      heart.style.opacity = "0";
+    });
 
     setTimeout(() => {
       heart.remove();
-    }, 1800);
+    }, 1500);
   }
 }
 
@@ -70,8 +119,8 @@ catContainer.addEventListener("click", () => {
     return;
   }
 
-  // Запуск сердечек при каждом клике
-  spawnHearts();
+  // Вызов сердечек
+  spawnHeartsJS();
 
   const isTask = Math.random() < 0.05;
 
