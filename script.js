@@ -10,7 +10,7 @@ const ringElement = document.getElementById("ring-element");
 
 // Ссылка на романтический отрывок из фильма (меняй на любое видео на YouTube)
 // Романтический отрывок из фильма «Виноваты звёзды» (Признание Огастуса)
-const movieUrl = "https://www.youtube.com/watch?v=1T8S_c14s4k";
+const movieUrl = "https://videotourl.com/videos/1787182212565-6583db05-8627-47ec-8dfa-cfe53331eacf.mp4";
 
 let isTaskActive = false;
 let isFinalActive = false;
