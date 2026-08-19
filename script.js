@@ -9,6 +9,9 @@ const preview = document.getElementById("preview");
 let isTaskActive = false;
 let currentFile = null;
 
+// Переменная для запоминания последнего показанного сообщения
+let lastMessageIndex = -1;
+
 const bgColors = [
   "#fffaf0", "#f0f9ff", "#fdf2f8", "#eef2ff", "#f0fff4", "#fffbeb",
   "#faf5ff", "#f0fdf4", "#fff1f2", "#f5f3ff"
@@ -70,7 +73,7 @@ const normalMessages = [
 // --- 10 ЗАДАНИЙ С ФОТО ---
 const photoTasks = [
   "🐱 Изобрази котика и отправь мне фото!",
-  "😾 Отправь мне фото, где ты делаешь смешное рожицу!",
+  "😾 Отправь мне фото, где ты делаешь смешную рожицу!",
   "☕️ Покажи, что ты сейчас пьёшь или ешь!",
   "🤳 Сделай самое милое селфи прямо сейчас!",
   "🧸 Отправь фото своего любимого предмета рядом!",
@@ -81,7 +84,7 @@ const photoTasks = [
   "❤️ Сделай фото, где ты руками показываешь сердечко!"
 ];
 
-// --- ЭФФЕКТ СЕРДЕЧЕК ПРЯМО НА JS ---
+// Эффект вылетающих сердечек
 function spawnHeartsJS() {
   const heartIcons = ["❤️", "💖", "💕", "💗", "💓", "🌸", "✨"];
   
@@ -89,7 +92,6 @@ function spawnHeartsJS() {
     const heart = document.createElement("div");
     heart.textContent = heartIcons[Math.floor(Math.random() * heartIcons.length)];
     
-    // Абсолютные стили прямо в JS (гарантированно сработает)
     heart.style.position = "fixed";
     heart.style.left = (Math.random() * 80 + 10) + "vw";
     heart.style.top = (Math.random() * 60 + 20) + "vh";
@@ -101,7 +103,6 @@ function spawnHeartsJS() {
 
     document.body.appendChild(heart);
 
-    // Анимация полета вверх
     requestAnimationFrame(() => {
       heart.style.transform = `translateY(-120px) scale(1.3) rotate(${(Math.random() - 0.5) * 60}deg)`;
       heart.style.opacity = "0";
@@ -113,13 +114,23 @@ function spawnHeartsJS() {
   }
 }
 
+// Функция для генерации индекса без повтора подряд
+function getUniqueMessageIndex() {
+  let newIndex;
+  do {
+    newIndex = Math.floor(Math.random() * normalMessages.length);
+  } while (newIndex === lastMessageIndex && normalMessages.length > 1);
+  
+  lastMessageIndex = newIndex;
+  return newIndex;
+}
+
 catContainer.addEventListener("click", () => {
   if (isTaskActive) {
     status.textContent = "⚠️ Сначала отправь фото, чтобы продолжить!";
     return;
   }
 
-  // Вызов сердечек
   spawnHeartsJS();
 
   const isTask = Math.random() < 0.05;
@@ -133,7 +144,10 @@ catContainer.addEventListener("click", () => {
   } else {
     const randomBg = bgColors[Math.floor(Math.random() * bgColors.length)];
     const randomFilter = catFilters[Math.floor(Math.random() * catFilters.length)];
-    const randomMsg = normalMessages[Math.floor(Math.random() * normalMessages.length)];
+    
+    // Берем гарантированно новое сообщение
+    const msgIndex = getUniqueMessageIndex();
+    const randomMsg = normalMessages[msgIndex];
 
     document.body.style.backgroundColor = randomBg;
     catContainer.style.filter = randomFilter;
