@@ -1,71 +1,30 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cozy Cat 🐱 Test</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      text-align: center;
-      padding: 20px;
-      margin: 0;
-      background-color: #fdfbf7;
-      color: #4a4a4a;
-    }
-    h1 { font-size: 20px; margin-bottom: 20px; }
-    
-    .file-select {
-      margin: 20px 0;
-    }
-
-    input[type="file"] {
-      font-size: 14px;
-      max-width: 100%;
-    }
-
-    button {
-      background-color: #ffb7b2;
-      color: #333;
-      padding: 14px 28px;
-      font-size: 16px;
-      font-weight: bold;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      width: 100%;
-      max-width: 300px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
-    
-    button:disabled {
-      background-color: #e0e0e0;
-      color: #999;
-    }
-
-    #preview-container {
-      margin: 20px auto;
-      min-height: 50px;
-    }
-
-    #preview {
-      display: none;
-      max-width: 100%;
-      max-height: 250px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin: 0 auto;
-    }
-
-    #status {
-      margin-top: 15px;
-      font-size: 14px;
-      word-break: break-word;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cozy Cat 🐱</title>
+    <!-- Подключаем стили -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <div class="cozy-wrapper">
+        <!-- Кот — центральный элемент, на который нужно нажимать -->
+        <div id="cat-container" class="cat-standard">
+            <img src="assets/cat.png" alt="Cozy Cat" id="cat-img">
+        </div>
+
+        <!-- Область для текста сообщений -->
+        <div id="message-area">
+            <p id="message-text">Мяу! Нажми на меня 🐾</p>
+        </div>
+    </div>
+
+    <!-- Подключаем логику -->
+    <script src="script.js"></script>
+</body>
+</html>
 
   <h1>🐱 Тест отправки фото (Камера / Галерея)</h1>
 
