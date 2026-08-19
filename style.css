@@ -1,0 +1,82 @@
+/* Общие настройки для максимального комфорта на телефоне */
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent; /* Убираем синее выделение при нажатии на iOS */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    
+    /* Начальный уютный фон */
+    background-color: #fffaf0; 
+    
+    /* Плавная смена фона при нажатии */
+    transition: background-color 0.8s ease;
+    overflow: hidden; /* Запрещаем скролл */
+}
+
+.cozy-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+/* Контейнер котика */
+#cat-container {
+    width: 150px;
+    height: 150px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* Плавная анимация изменения размера и цвета котика */
+    transition: transform 0.3s ease, filter 0.8s ease;
+}
+
+/* Эффект нажатия на котика (микро-отклик) */
+#cat-container:active {
+    transform: scale(0.92);
+}
+
+#cat-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Область сообщения */
+#message-area {
+    margin-top: 40px;
+    height: 60px; /* Фиксированная высота, чтобы текст не прыгал */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#message-text {
+    font-size: 18px;
+    color: #555;
+    text-align: center;
+    margin: 0;
+    padding: 0 10px;
+    
+    /* Анимация появления текста */
+    animation: fadeIn 1s ease;
+}
+
+/* Простая анимация появления */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
