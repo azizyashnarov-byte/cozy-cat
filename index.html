@@ -90,80 +90,88 @@
 
     let currentFile = null;
 
-    // Обработка выбора/съёмки
-    photoInput.addEventListener("change", async (event) => {
-      const files = event.target.files;
+    // Вспомогательная функция: нормализация фото через Canvas
+    async function normalizeImage(file) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                // Устанавливаем размеры (можно ограничить максимум, например 1200px)
+                const maxDimension = 1200;
+                let width = img.width;
+                let height = img.height;
 
-      if (!files || files.length === 0) {
-        status.textContent = "❌ Файл не найден или съёмка была отменена.";
-        preview.style.display = "none";
-        sendButton.disabled = true;
-        currentFile = null;
-        return;
-      }
+                if (width > maxDimension || height > maxDimension) {
+                    if (width > height) {
+                        height *= maxDimension / width;
+                        width = maxDimension;
+                    } else {
+                        width *= maxDimension / height;
+                        height = maxDimension;
+                    }
+                }
 
-      const rawFile = files[0];
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
 
-      // Проверка размера (защита от пустых/сбойных файлов камеры)
-      if (rawFile.size === 0) {
-        status.textContent = "❌ Ошибка: получен пустой файл с камеры.";
-        sendButton.disabled = true;
-        return;
-      }
-
-      // Нормализуем файл (пересоздаём Blob, чтобы гарантировать корректное имя и MIME-тип)
-      currentFile = new File([rawFile], rawFile.name || `photo_${Date.now()}.jpg`, {
-        type: rawFile.type || "image/jpeg"
-      });
-
-      status.textContent = `📸 Фото загружено: ${Math.round(currentFile.size / 1024)} KB. Нажмите «Отправить».`;
-      
-      // Вывод предпросмотра через FileReader (более надёжно на Safari)
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        preview.src = e.target.result;
-        preview.style.display = "block";
-        sendButton.disabled = false;
-      };
-      reader.readAsDataURL(currentFile);
-    });
-
-    // Отправка на Cloudflare Worker
-    sendButton.addEventListener("click", async () => {
-      if (!currentFile) {
-        status.textContent = "⚠️ Сначала выберите или сделайте фото.";
-        return;
-      }
-
-      status.textContent = "⏳ Отправка в Telegram...";
-      sendButton.disabled = true;
-
-      const formData = new FormData();
-      formData.append("photo", currentFile, currentFile.name);
-
-      try {
-        const response = await fetch("https://broken-wave-1cb1.azizyashnarov.workers.dev/send-photo", {
-          method: "POST",
-          body: formData
+                // Превращаем в чистый JPEG
+                canvas.toBlob((blob) => {
+                    resolve(new File([blob], "normalized_photo.jpg", { type: "image/jpeg" }));
+                }, "image/jpeg", 0.85); // 0.85 качество
+            };
+            img.src = URL.createObjectURL(file);
         });
+    }
 
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-          status.textContent = "✅ Фотография успешно доставлена в Telegram!";
-          preview.style.display = "none";
-          photoInput.value = "";
-          currentFile = null;
-        } else {
-          status.textContent = `❌ Ошибка сервера: ${result.error || "Неизвестная ошибка"}`;
-          sendButton.disabled = false;
+    photoInput.addEventListener("change", (e) => {
+        const files = e.target.files;
+        if (files && files[0]) {
+            currentFile = files[0];
+            preview.src = URL.createObjectURL(currentFile);
+            preview.style.display = "block";
+            sendButton.disabled = false;
+            status.textContent = "Фото выбрано, готово к отправке.";
         }
-      } catch (error) {
-        console.error(error);
-        status.textContent = "❌ Ошибка сети. Проверьте подключение.";
-        sendButton.disabled = false;
-      }
     });
-  </script>
+
+    sendButton.addEventListener("click", async () => {
+        if (!currentFile) return;
+
+        status.textContent = "⚙️ Обработка фото...";
+        sendButton.disabled = true;
+
+        try {
+            // Нормализуем фото перед отправкой (это исправит баг с фронтальной камерой)
+            const cleanFile = await normalizeImage(currentFile);
+            
+            status.textContent = "⏳ Отправка в Telegram...";
+            
+            const formData = new FormData();
+            formData.append("photo", cleanFile);
+
+            const response = await fetch("https://broken-wave-1cb1.azizyashnarov.workers.dev/send-photo", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                status.textContent = "✅ Фотография успешно доставлена!";
+                preview.style.display = "none";
+                photoInput.value = "";
+                currentFile = null;
+            } else {
+                throw new Error("Ошибка сервера");
+            }
+        } catch (error) {
+            console.error(error);
+            status.textContent = "❌ Ошибка при отправке. Попробуй еще раз.";
+            sendButton.disabled = false;
+        }
+    });
+</script>
 </body>
 </html>
